@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeoMutt Ultimate Interactive Cheatsheet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+        
+        :root {
+            --mutt-bg: #000000;
+            --mutt-fg: #d1d1d1;
+            --mutt-yellow: #ffff00;
+            --mutt-brightyellow: #fbff00;
+            --mutt-cyan: #00ffff;
+            --mutt-brightcyan: #55ffff;
+            --mutt-red: #ff0000;
+            --mutt-brightred: #ff5555;
+            --mutt-green: #00ff00;
+            --mutt-brightgreen: #55ff55;
+            --mutt-blue: #5555ff;
+            --mutt-magenta: #ff00ff;
+        }
+
+        body {
+            background-color: var(--mutt-bg);
+            color: var(--mutt-fg);
+            font-family: 'JetBrains Mono', monospace;
+            scroll-behavior: smooth;
+        }
+
+        .terminal-border {
+            border: 1px solid #333;
+        }
+
+        .key-badge {
+            background-color: #1a1a1a;
+            color: var(--mutt-brightcyan);
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid #444;
+            font-weight: bold;
+        }
+
+        .category-card {
+            background: #0a0a0a;
+            border-left: 4px solid var(--mutt-blue);
+            transition: transform 0.1s ease;
+        }
+
+        .category-card:hover {
+            border-left-color: var(--mutt-brightcyan);
+        }
+
+        .search-input {
+            background: #111;
+            border: 1px solid #444;
+            color: var(--mutt-yellow);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--mutt-brightcyan);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+        }
+
+        .flag-tag {
+            font-weight: bold;
+            display: inline-block;
+            width: 25px;
+            text-align: center;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #444; }
+
+        .highlight-yellow { color: var(--mutt-brightyellow); }
+        .highlight-cyan { color: var(--mutt-brightcyan); }
+        .highlight-red { color: var(--mutt-brightred); }
+        .highlight-green { color: var(--mutt-brightgreen); }
+        
+        .macro-tag {
+            font-size: 0.7rem;
+            color: var(--mutt-magenta);
+            text-transform: uppercase;
+            border: 1px solid var(--mutt-magenta);
+            padding: 1px 4px;
+            border-radius: 3px;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <!-- Header Section -->
+    <header class="max-w-6xl mx-auto mb-10 border-b border-zinc-800 pb-6">
+        <div class="flex flex-col md:flex-row justify-between items-end gap-4">
+            <div>
+                <h1 class="text-4xl font-bold highlight-yellow mb-2">NEOMUTT_ULTIMATE</h1>
+                <p class="text-zinc-500 uppercase tracking-widest text-sm">Interactive Command & Macro Directory</p>
+            </div>
+            <div class="w-full md:w-96">
+                <input type="text" id="globalSearch" placeholder="SEARCH BINDINGS (e.g. 'sync', 'delete', 'gi')..." 
+                       class="search-input w-full p-3 rounded font-mono text-sm">
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8">
+        
+        <!-- Sidebar Navigation -->
+        <nav class="lg:col-span-1 space-y-2 sticky top-8 h-fit hidden lg:block">
+            <h3 class="highlight-cyan text-xs font-bold mb-4 border-b border-zinc-800 pb-2">CATEGORIES</h3>
+            <button onclick="scrollToSection('nav')" class="w-full text-left p-2 hover:bg-zinc-900 rounded transition text-sm">Navigation & Movement</button>
+            <button onclick="scrollToSection('reading')" class="w-full text-left p-2 hover:bg-zinc-900 rounded transition text-sm">Reading & Viewing</button>
+            <button onclick="scrollToSection('compose')" class="w-full text-left p-2 hover:bg-zinc-900 rounded transition text-sm">Compose & Reply</button>
+            <button onclick="scrollToSection('mailbox')" class="w-full text-left p-2 hover:bg-zinc-900 rounded transition text-sm">Mailbox Management</button>
+            <button onclick="scrollToSection('tagging')" class="w-full text-left p-2 hover:bg-zinc-900 rounded transition text-sm">Selection & Tagging</button>
+            <button onclick="scrollToSection('modification')" class="w-full text-left p-2 hover:bg-zinc-900 rounded transition text-sm">Modification & Flags</button>
+            <button onclick="scrollToSection('search')" class="w-full text-left p-2 hover:bg-zinc-900 rounded transition text-sm">Search & Filtering</button>
+            <button onclick="scrollToSection('sidebar')" class="w-full text-left p-2 hover:bg-zinc-900 rounded transition text-sm">Sidebar Control</button>
+            <button onclick="scrollToSection('flags')" class="w-full text-left p-2 hover:bg-zinc-900 rounded transition text-sm">Flag Meanings</button>
+            <button onclick="scrollToSection('unbound')" class="w-full text-left p-2 hover:bg-zinc-900 rounded transition text-sm">Unbound Functions</button>
+        </nav>
+
+        <!-- Content Area -->
+        <div class="lg:col-span-3 space-y-12 pb-24" id="content-container">
+            
+            <!-- SECTION: Navigation -->
+            <section id="nav" class="category-block">
+                <h2 class="text-xl font-bold highlight-cyan mb-4 flex items-center">
+                    <span class="mr-2">::</span> NAVIGATION & MOVEMENT
+                </h2>
+                <div class="grid grid-cols-1 gap-2 border-t border-zinc-800 pt-4">
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">j / &lt;Down&gt;</span>
+                        <span class="text-right text-sm text-zinc-400">Move to next entry</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">k / &lt;Up&gt;</span>
+                        <span class="text-right text-sm text-zinc-400">Move to previous entry</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">gg / = / &lt;Home&gt;</span>
+                        <span class="text-right text-sm text-zinc-400">Jump to first entry</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">G / * / &lt;End&gt;</span>
+                        <span class="text-right text-sm text-zinc-400">Jump to last entry</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">d / ]</span>
+                        <span class="text-right text-sm text-zinc-400">Scroll down 1/2 page</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">u / [</span>
+                        <span class="text-right text-sm text-zinc-400">Scroll up 1/2 page</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">z / &lt;Right&gt;</span>
+                        <span class="text-right text-sm text-zinc-400">Next page</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">Z / &lt;Left&gt;</span>
+                        <span class="text-right text-sm text-zinc-400">Previous page</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">P</span>
+                        <span class="text-right text-sm text-zinc-400">Jump to parent message in thread</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">&lt;Tab&gt;</span>
+                        <span class="text-right text-sm text-zinc-400">Jump to next new/unread message</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: Reading -->
+            <section id="reading" class="category-block">
+                <h2 class="text-xl font-bold highlight-cyan mb-4 flex items-center">
+                    <span class="mr-2">::</span> READING & VIEWING
+                </h2>
+                <div class="grid grid-cols-1 gap-2 border-t border-zinc-800 pt-4">
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">l / &lt;Enter&gt;</span>
+                        <span class="text-right text-sm text-zinc-400">Display current message</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">v</span>
+                        <span class="text-right text-sm text-zinc-400">Show MIME attachments</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">H</span>
+                        <span class="text-right text-sm text-zinc-400">View raw message headers/body</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">e</span>
+                        <span class="text-right text-sm text-zinc-400">Edit or view raw message (checks read-only)</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">|</span>
+                        <span class="text-right text-sm text-zinc-400">Pipe message to shell command</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">^B<span class="macro-tag">Macro</span></span>
+                        <span class="text-right text-sm text-zinc-400">Extract URLs using urlview</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">@</span>
+                        <span class="text-right text-sm text-zinc-400">Display full address of sender</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">&lt;Esc&gt;V</span>
+                        <span class="text-right text-sm text-zinc-400">Collapse/Uncollapse all threads</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: Mailbox Management -->
+            <section id="mailbox" class="category-block">
+                <h2 class="text-xl font-bold highlight-cyan mb-4 flex items-center">
+                    <span class="mr-2">::</span> MAILBOX & FOLDER MANAGEMENT
+                </h2>
+                <div class="grid grid-cols-1 gap-2 border-t border-zinc-800 pt-4">
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">gi / mi / ci<span class="macro-tag">Macro</span></span>
+                        <span class="text-right text-sm text-zinc-400 text-mutt-magenta">Go / Move / Copy to INBOX</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">gs / ms / cs<span class="macro-tag">Macro</span></span>
+                        <span class="text-right text-sm text-zinc-400 text-mutt-magenta">Go / Move / Copy to SENT</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">gt / mt / ct<span class="macro-tag">Macro</span></span>
+                        <span class="text-right text-sm text-zinc-400 text-mutt-magenta">Go / Move / Copy to TRASH</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">ga / ma / ca<span class="macro-tag">Macro</span></span>
+                        <span class="text-right text-sm text-zinc-400 text-mutt-magenta">Go / Move / Copy to ARCHIVE</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">gd / md / cd<span class="macro-tag">Macro</span></span>
+                        <span class="text-right text-sm text-zinc-400 text-mutt-magenta">Go / Move / Copy to DRAFTS</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">gj / mj / cj<span class="macro-tag">Macro</span></span>
+                        <span class="text-right text-sm text-zinc-400 text-mutt-magenta">Go / Move / Copy to JUNK</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">i1 / i2<span class="macro-tag">Macro</span></span>
+                        <span class="text-right text-sm text-zinc-400">Switch Accounts (Gmail 1 / Gmail 2)</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">O / o<span class="macro-tag">Macro</span></span>
+                        <span class="text-right text-sm text-zinc-400">Sync all mail (mw -Y) / Sync current account</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">S / $</span>
+                        <span class="text-right text-sm text-zinc-400">Sync current mailbox (save changes)</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">c / y</span>
+                        <span class="text-right text-sm text-zinc-400">Change folder / Show incoming list</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: Compose -->
+            <section id="compose" class="category-block">
+                <h2 class="text-xl font-bold highlight-cyan mb-4 flex items-center">
+                    <span class="mr-2">::</span> COMPOSE & REPLY
+                </h2>
+                <div class="grid grid-cols-1 gap-2 border-t border-zinc-800 pt-4">
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">m</span>
+                        <span class="text-right text-sm text-zinc-400">Compose new mail message</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">r</span>
+                        <span class="text-right text-sm text-zinc-400">Reply to sender</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">R</span>
+                        <span class="text-right text-sm text-zinc-400">Group reply (all recipients)</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">f</span>
+                        <span class="text-right text-sm text-zinc-400">Forward message</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">b</span>
+                        <span class="text-right text-sm text-zinc-400">Bounce (remail) message</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">a<span class="macro-tag">Macro</span></span>
+                        <span class="text-right text-sm text-zinc-400">Add sender to abook</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: Search -->
+            <section id="search" class="category-block">
+                <h2 class="text-xl font-bold highlight-cyan mb-4 flex items-center">
+                    <span class="mr-2">::</span> SEARCH & FILTERING
+                </h2>
+                <div class="grid grid-cols-1 gap-2 border-t border-zinc-800 pt-4">
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">L</span>
+                        <span class="text-right text-sm text-zinc-400">Limit view to pattern matching messages</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">A<span class="macro-tag">Macro</span></span>
+                        <span class="text-right text-sm text-zinc-400">Clear limit (show all messages)</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">/</span>
+                        <span class="text-right text-sm text-zinc-400">Search forward for regex</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">&lt;Esc&gt;/</span>
+                        <span class="text-right text-sm text-zinc-400">Search backward for regex</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">n</span>
+                        <span class="text-right text-sm text-zinc-400">Search for next match</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">^F<span class="macro-tag">Macro</span></span>
+                        <span class="text-right text-sm text-zinc-400">Advanced Notmuch search integration</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">&lt;Esc&gt;b<span class="macro-tag">Macro</span></span>
+                        <span class="text-right text-sm text-zinc-400">Search within message bodies</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: Tagging -->
+            <section id="tagging" class="category-block">
+                <h2 class="text-xl font-bold highlight-cyan mb-4 flex items-center">
+                    <span class="mr-2">::</span> SELECTION & TAGGING
+                </h2>
+                <div class="grid grid-cols-1 gap-2 border-t border-zinc-800 pt-4">
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">t / &lt;Space&gt;</span>
+                        <span class="text-right text-sm text-zinc-400">Tag current entry</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">;</span>
+                        <span class="text-right text-sm text-zinc-400">Tag-prefix (apply next action to all tagged)</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">T</span>
+                        <span class="text-right text-sm text-zinc-400">Tag messages matching a pattern</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">^T</span>
+                        <span class="text-right text-sm text-zinc-400">Untag messages matching a pattern</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">&lt;Esc&gt;t</span>
+                        <span class="text-right text-sm text-zinc-400">Tag current thread</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: Modification -->
+            <section id="modification" class="category-block">
+                <h2 class="text-xl font-bold highlight-cyan mb-4 flex items-center">
+                    <span class="mr-2">::</span> MODIFICATION & FLAGS
+                </h2>
+                <div class="grid grid-cols-1 gap-2 border-t border-zinc-800 pt-4">
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">D</span>
+                        <span class="text-right text-sm text-zinc-400 text-mutt-red">Delete current message</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">U</span>
+                        <span class="text-right text-sm text-zinc-400 text-mutt-green">Undelete current message</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">^R<span class="macro-tag">Macro</span></span>
+                        <span class="text-right text-sm text-zinc-400">Mark all messages as read</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">N</span>
+                        <span class="text-right text-sm text-zinc-400">Toggle 'New' flag</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">F</span>
+                        <span class="text-right text-sm text-zinc-400">Toggle 'Important' (Flagged)</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">w / W</span>
+                        <span class="text-right text-sm text-zinc-400">Set / Clear a status flag</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">Y</span>
+                        <span class="text-right text-sm text-zinc-400">Edit X-Label</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: Sidebar -->
+            <section id="sidebar" class="category-block">
+                <h2 class="text-xl font-bold highlight-cyan mb-4 flex items-center">
+                    <span class="mr-2">::</span> SIDEBAR CONTROL
+                </h2>
+                <div class="grid grid-cols-1 gap-2 border-t border-zinc-800 pt-4">
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">B</span>
+                        <span class="text-right text-sm text-zinc-400">Toggle sidebar visibility</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">^K / ^J</span>
+                        <span class="text-right text-sm text-zinc-400">Move highlight Up / Down</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">^O / &lt;Enter&gt;</span>
+                        <span class="text-right text-sm text-zinc-400">Open highlighted mailbox</span>
+                    </div>
+                    <div class="command-item flex justify-between p-2 hover:bg-zinc-900/50 rounded border-b border-zinc-900">
+                        <span class="key-badge">^P / ^N</span>
+                        <span class="text-right text-sm text-zinc-400">Move to Previous / Next mailbox with New mail</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: Flags -->
+            <section id="flags" class="category-block">
+                <h2 class="text-xl font-bold highlight-cyan mb-4 flex items-center">
+                    <span class="mr-2">::</span> MESSAGE FLAGS & INDICATORS
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-zinc-800 pt-6">
+                    <div>
+                        <h3 class="text-sm font-bold text-zinc-500 mb-4 uppercase">Status Flags ($flag_chars)</h3>
+                        <ul class="space-y-2 text-sm">
+                            <li><span class="flag-tag highlight-blue">*</span> Message is tagged</li>
+                            <li><span class="flag-tag highlight-red">!</span> Message is flagged (Important)</li>
+                            <li><span class="flag-tag highlight-red">D</span> Message is deleted</li>
+                            <li><span class="flag-tag highlight-green">N</span> Message is NEW</li>
+                            <li><span class="flag-tag highlight-yellow">O</span> Message is Old (Read)</li>
+                            <li><span class="flag-tag highlight-cyan">r</span> Message has been replied to</li>
+                            <li><span class="flag-tag">n</span> Thread has new messages</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-zinc-500 mb-4 uppercase">Crypto Flags ($crypt_chars)</h3>
+                        <ul class="space-y-2 text-sm">
+                            <li><span class="flag-tag highlight-green">S</span> Signed with verified key</li>
+                            <li><span class="flag-tag highlight-yellow">P</span> PGP-Encrypted</li>
+                            <li><span class="flag-tag highlight-cyan">s</span> Message is signed</li>
+                            <li><span class="flag-tag">K</span> Contains a PGP Key</li>
+                        </ul>
+                        <h3 class="text-sm font-bold text-zinc-500 mt-6 mb-4 uppercase">Recipient Flags ($to_chars)</h3>
+                        <ul class="space-y-2 text-sm">
+                            <li><span class="flag-tag highlight-green">+</span> To you and ONLY you</li>
+                            <li><span class="flag-tag highlight-cyan">T</span> To you</li>
+                            <li><span class="flag-tag">C</span> Cc: to you</li>
+                            <li><span class="flag-tag highlight-red">F</span> From you</li>
+                            <li><span class="flag-tag">L</span> Sent to a mailing list</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: Unbound -->
+            <section id="unbound" class="category-block">
+                <h2 class="text-xl font-bold highlight-cyan mb-4 flex items-center">
+                    <span class="mr-2">::</span> UNBOUND / ADVANCED FUNCTIONS
+                </h2>
+                <p class="text-xs text-zinc-500 mb-4">These functions are not mapped to keys by default but can be called via <span class="highlight-yellow">:exec function-name</span></p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 text-[10px] font-mono border-t border-zinc-800 pt-4" id="unbound-list">
+                    <!-- Javascript will populate this -->
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <footer class="fixed bottom-0 left-0 w-full bg-black border-t border-zinc-800 p-2 text-center text-[10px] text-zinc-600">
+        NEOMUTT_CONFIG :: SORT=REVERSE-DATE :: INDEX_FORMAT="%2C %Z %?X?A& ? %D %-15.15F %s (%-4.4c)" :: PRESS '?' FOR HELP
+    </footer>
+
+    <script>
+        const unboundFunctions = [
+            "alias-dialog", "catchup", "change-newsgroup", "change-vfolder", "compose-to-sender",
+            "copy-message", "create-alias", "decrypt-copy", "decrypt-save", "delete-pattern",
+            "display-toggle-weed", "edit-type", "entire-thread", "extract-keys", "fetch-mail",
+            "followup-message", "forget-passphrase", "forward-to-group", "get-children", "get-message",
+            "get-parent", "group-chat-reply", "imap-fetch-mail", "imap-logout-all", "limit-current-thread",
+            "list-reply", "list-subscribe", "list-unsubscribe", "modify-labels", "next-thread",
+            "purge-message", "purge-thread", "quasi-delete", "read-thread", "recall-message",
+            "reconstruct-thread", "root-message", "sidebar-first", "sidebar-last", "sort-mailbox",
+            "vfolder-from-query", "check-stats", "show-log-messages", "what-key", "error-history"
+        ];
+
+        // Populate unbound functions
+        const unboundContainer = document.getElementById('unbound-list');
+        unboundFunctions.forEach(fn => {
+            const div = document.createElement('div');
+            div.className = "flex justify-between border-b border-zinc-900/50 p-1 hover:text-white";
+            div.innerHTML = `<span>${fn}</span><span class="text-zinc-700">UNBOUND</span>`;
+            unboundContainer.appendChild(div);
+        });
+
+        // Interactive Search
+        const searchInput = document.getElementById('globalSearch');
+        const commandItems = document.querySelectorAll('.command-item');
+        const sections = document.querySelectorAll('.category-block');
+
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            
+            commandItems.forEach(item => {
+                const text = item.innerText.toLowerCase();
+                if (text.includes(term)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            // Hide sections if no visible children
+            sections.forEach(section => {
+                const items = section.querySelectorAll('.command-item');
+                let hasVisible = false;
+                items.forEach(i => { if(i.style.display !== 'none') hasVisible = true; });
+                
+                // Also check flag and unbound sections specifically if they contain search text
+                if (section.id === 'flags' || section.id === 'unbound') {
+                   if (section.innerText.toLowerCase().includes(term)) hasVisible = true;
+                }
+
+                section.style.display = hasVisible ? 'block' : 'none';
+            });
+        });
+
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    </script>
+</body>
+</html>
